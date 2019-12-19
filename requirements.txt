@@ -11,16 +11,12 @@ Click==7.0
 cmake==3.15.3
 colorama==0.3.9
 cryptography==2.6.1
-Django==1.11.23
-django-cors-headers==3.0.2
 docutils==0.15.2
 enum34==1.1.6
 first==2.0.2
-Flask==1.0.3
 futures==3.3.0
 ipaddress==1.0.22
 itsdangerous==1.1.0
-Jinja2==2.10.1
 jmespath==0.9.4
 kombu==4.4.0
 MarkupSafe==1.1.1
@@ -39,4 +35,3 @@ six==1.12.0
 urllib3==1.25.6
 vine==1.2.0
 virtualenv==16.4.3
-Werkzeug==0.15.5
