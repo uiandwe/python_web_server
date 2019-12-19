@@ -4,8 +4,11 @@ https://docs.python.org/3/howto/logging-cookbook.html
 https://docs.python.org/ko/3/library/logging.handlers.html
 """
 
+# TODO logging.ini 파일로 설정 대체
+
+import os
 import logging
-from logging.handlers import RotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
 
 __all__ = (
     'Logger'
@@ -17,23 +20,27 @@ class Logger:
 
     def __init__(self):
 
+        self.create_log_folder("logs")
+
         self.mylogger = logging.getLogger("my")
         self.mylogger.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter('%(asctime)s - %(filename)s - %(lineno)s - %(levelname)s - %(message)s')
 
-        stream_hander = logging.StreamHandler()
-        stream_hander.setFormatter(formatter)
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
 
-        log_max_size = 10 * 1024 * 1024
-        log_file_count = 1
-        file_handler = RotatingFileHandler(filename='./server.log',
-                                           maxBytes=log_max_size,
-                                           backupCount=log_file_count)
-        file_handler.setFormatter(formatter)
+        time_log_handler = TimedRotatingFileHandler(filename='./logs/server.log', when='midnight', interval=1,
+                                                    encoding='utf-8')
+        time_log_handler.setFormatter(formatter)
+        time_log_handler.suffix = "%Y%m%d"
 
-        self.mylogger.addHandler(file_handler)
-        self.mylogger.addHandler(stream_hander)
+        self.mylogger.addHandler(time_log_handler)
+        self.mylogger.addHandler(stream_handler)
 
     def __call__(self, *args, **kwargs):
         return self.mylogger
+
+    def create_log_folder(self, dir_name):
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
