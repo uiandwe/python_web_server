@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# TODO 클래스 이름 바꾸기
 # TODO type 지정하기 (from typing import Dict, Tuple, Union, Iterator, Sequence, List)
 # TODO test 로직 추가 하기
 # TODO socket 클래스로 분리하기
@@ -15,7 +16,7 @@
 import selectors
 import socket
 import types
-import libserver
+from message import Message
 
 from logger import Logger
 from utils import args_to_str
@@ -44,17 +45,14 @@ class WebFrameWork:
             while True:
                 events = self.sel.select(timeout=10)
                 for key, mask in events:
-                    print(key, mask)
                     if key.data is None:
                         self.accept_handler(key.fileobj)
                     else:
-                        # self.service_connection(key, mask)
-                        message = key.data
+                        message_obj = key.data
                         try:
-                            message.process_events(mask)
+                            message_obj.process_events(mask)
                         except Exception:
-                            # print("main: error: exception for", f"{message.addr}:\n{traceback.format_exc()}")
-                            message.close()
+                            message_obj.close()
         except KeyboardInterrupt:
             LOG.info("close server ")
         finally:
@@ -67,36 +65,9 @@ class WebFrameWork:
         conn, addr = sock.accept()
         LOG.info(args_to_str("accepted connection from ", addr))
         conn.setblocking(False)
-        # data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        # self.sel.register(conn, events, data=data)
-        message = libserver.Message(self.sel, conn, addr)
-        self.sel.register(conn, events, data=message)
-
-    # def service_connection(self, key, mask):
-    #     sock = key.fileobj
-    #     data = key.data
-    #
-    #     # 클라에서 데이터 받기
-    #     if mask & selectors.EVENT_READ:
-    #         recv_data = sock.recv(1024)
-    #         if recv_data:
-    #             data.outb += recv_data
-    #         else:
-    #             LOG.info(args_to_str("closeing conn to ", data.addr))
-    #             self.sel.unregister(sock)
-    #             sock.close()
-    #
-    #     # 클라에 데이터 보내기
-    #     if mask & selectors.EVENT_WRITE:
-    #         if data.outb:
-    #             # print("echo ", repr(data.outb), "to", data.addr)
-    #             # sent = sock.send(data.outb)
-    #             # data.outb = data.outb[sent:]
-    #             sock.send(b"HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html><body>Hello World</body></html>\n")
-    #             LOG.info(args_to_str("closeing conn to ", data.addr))
-    #             self.sel.unregister(sock)
-    #             sock.close()
+        message_obj = Message(self.sel, conn, addr)
+        self.sel.register(conn, events, data=message_obj)
 
 
 if __name__ == '__main__':
