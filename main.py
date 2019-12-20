@@ -100,7 +100,7 @@ class WebFrameWork:
 
 
 if __name__ == '__main__':
-    LOG = Logger()()
+    LOG = Logger.instance().mylogger
     LOG.info("server start!!!")
 
     WebFrameWork()()

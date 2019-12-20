@@ -16,14 +16,15 @@ __all__ = (
 
 
 class Logger:
-    __slots__ = ["mylogger"]
+    __slots__ = ["_mylogger"]
+    __instance = None
 
     def __init__(self):
 
         self.create_log_folder("logs")
 
-        self.mylogger = logging.getLogger("my")
-        self.mylogger.setLevel(logging.DEBUG)
+        self._mylogger = logging.getLogger("my")
+        self._mylogger.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter('%(asctime)s - %(filename)s - %(lineno)s - %(levelname)s - %(message)s')
 
@@ -35,11 +36,22 @@ class Logger:
         time_log_handler.setFormatter(formatter)
         time_log_handler.suffix = "%Y%m%d"
 
-        self.mylogger.addHandler(time_log_handler)
-        self.mylogger.addHandler(stream_handler)
+        self._mylogger.addHandler(time_log_handler)
+        self._mylogger.addHandler(stream_handler)
 
-    def __call__(self, *args, **kwargs):
-        return self.mylogger
+    @classmethod
+    def __getInstance(cls):
+        return cls.__instance
+
+    @classmethod
+    def instance(cls, *args, **kargs):
+        cls.__instance = cls(*args, **kargs)
+        cls.instance = cls.__getInstance
+        return cls.__instance
+
+    @property
+    def mylogger(self):
+        return self._mylogger
 
     def create_log_folder(self, dir_name):
         if not os.path.exists(dir_name):
