@@ -14,7 +14,7 @@ class Message:
         self._send_buffer = b""
 
         # ??? 로그 객체를 어떻게 관리 해야 하지???
-        self.LOG = Logger.instance().mylogger
+        self.LOG = Logger.instance().log
 
     def _read(self):
         try:
