@@ -17,6 +17,7 @@ import selectors
 import socket
 import types
 from message import Message
+from _thread import start_new_thread
 
 from logger import Logger
 from utils import args_to_str
@@ -65,13 +66,17 @@ class WebFrameWork:
         conn, addr = sock.accept()
         LOG.info(args_to_str("accepted connection from ", addr))
         conn.setblocking(False)
+
+        start_new_thread(self.thread_socket, (conn, addr))
+
+    def thread_socket(self, conn, addr):
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
         message_obj = Message(self.sel, conn, addr)
         self.sel.register(conn, events, data=message_obj)
 
 
 if __name__ == '__main__':
-    LOG = Logger.instance().mylogger
+    LOG = Logger.instance().log
     LOG.info("server start!!!")
 
     WebFrameWork()()
