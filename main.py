@@ -2,6 +2,7 @@
 # TODO 데이터 받고 / 보내기 (message class 상세하기)
 # TODO http 호환 클래스 ( http 상태 코드 선언)
 # TODO router 구현하기
+# -----------------------------------------------------
 # TODO http method 구현하기
 # TODO 미들웨어 구현하기
 # TODO file read view 구현하기
@@ -13,8 +14,9 @@
 # TODO wsgi 호환
 # TODO weakref 객체 확인하기
 # TODO 초기 파라미터 셋팅
+# TODO http2 적용
 
-from web_frame_work import WebFrameWork
+from web_server import WebServer
 from logger import Logger
 
 LOG = Logger.instance().log
@@ -22,4 +24,4 @@ LOG = Logger.instance().log
 if __name__ == '__main__':
     LOG.info("server start!!!")
 
-    WebFrameWork()()
+    WebServer()()

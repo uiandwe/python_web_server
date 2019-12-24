@@ -9,8 +9,12 @@ from utils import args_to_str
 
 LOG = Logger.instance().log
 
+__all__ = (
+    'WebServer'
+)
 
-class WebFrameWork:
+
+class WebServer:
     __slots__ = ["host", "port", "lsock", "sel"]
 
     def __init__(self, host="127.0.0.1", port=65432):
