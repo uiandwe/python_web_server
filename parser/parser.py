@@ -19,16 +19,14 @@ class ParserImp:
     def parser_request(self):
         raise NotImplementedError()
 
-
     @abstractmethod
     def parser_body(self):
         raise NotImplementedError()
 
 
 class ParserHttp(ParserImp):
-
     def __init__(self, *args, **kwargs):
-        super(ParserImp, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __call__(self, *args, **kwargs):
         req_line, headers_alone = args[0].split(b'\r\n', 1)

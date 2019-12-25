@@ -12,9 +12,10 @@ __all__ = (
 )
 # TODO http status code -> init.py
 
+# TODO handle
 class Message:
 
-    __slots__ = ["selector", "sock", "addr", "_recv_buffer", "_send_buffer", "_json_header_len"]
+    __slots__ = ["selector", "sock", "addr", "_recv_buffer", "_send_buffer", "_json_header_len", "request"]
 
     def __init__(self, selector, sock, addr):
         self.selector = selector
@@ -23,6 +24,8 @@ class Message:
         self._recv_buffer = b""
         self._send_buffer = b""
         self._json_header_len = None
+        # TODO 미리 request로 선언해도 되는가?
+        self.request = None
 
     def process_events(self, mask):
         if mask & selectors.EVENT_READ:
@@ -35,9 +38,12 @@ class Message:
 
         if self._recv_buffer:
             req_line, request_headers = ParserHttp()(self._recv_buffer)
-            request = Request(req_line, request_headers)
-            LOG.info(request)
-        # TODO http 프로토콜 확인
+            self.request = Request(req_line, request_headers)
+            LOG.info(self.request)
+
+        # TODO 다른 프로토콜도 가능하도록 설계하기
+        if self.request is None or self.request.protocol in [b'http/1.1']:
+            return
 
         # TODO 헤더 확인
 
@@ -45,9 +51,12 @@ class Message:
 
         # TODO body 확인
 
-
     def write(self):
         # TODO router (파일 or 메소드 확인)
+        # @app.route("/")
+        # @app.route("/api/v1/users/", methods=['GET', 'POST', 'PUT'])
+        # @app.route('/<int:year>/<int:month>/<title>')
+
 
         # TODO send
 
@@ -91,7 +100,7 @@ class Message:
         finally:
             self.sock = None
 
-
+# TODO RequestHandler
 class Request:
     __slots__ = ["command", "url", "protocol", "headers", "body"]
 
@@ -105,7 +114,7 @@ class Request:
     def __repr__(self):
         return "{} {} {} {}".format(self.__class__, self.command, self.url, self.protocol)
 
-
+# TODO /Users/sj.hyeon/development/env/python36/lib/python3.6/site-packages/werkzeug/wrappers/base_response.py
 class Response:
     def __init__(self):
         self.error_code = None
