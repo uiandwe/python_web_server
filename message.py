@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import selectors
+
 from logger import Logger
 from utils import args_to_str
-from email.parser import BytesParser
+from parser.parser import ParserHttp
 
 LOG = Logger.instance().log
 
 __all__ = (
     'Message', 'Request'
 )
-
+# TODO http status code -> init.py
 
 class Message:
 
@@ -33,7 +34,8 @@ class Message:
         self._read()
 
         if self._recv_buffer:
-            request = Parser()(self._recv_buffer)
+            req_line, request_headers = ParserHttp()(self._recv_buffer)
+            request = Request(req_line, request_headers)
             LOG.info(request)
         # TODO http 프로토콜 확인
 
@@ -43,11 +45,15 @@ class Message:
 
         # TODO body 확인
 
-        #
-
 
     def write(self):
+        # TODO router (파일 or 메소드 확인)
+
+        # TODO send
+
+
         self._write()
+
 
     def _read(self):
         try:
@@ -84,40 +90,6 @@ class Message:
             LOG.error(repr(e))
         finally:
             self.sock = None
-
-
-class Parser:
-    def __call__(self, *args, **kwargs):
-        req_line, headers_alone = args[0].split(b'\r\n', 1)
-
-        req_line = self.parser_request(req_line)
-
-        request_headers = self.parser_headers(headers_alone)
-
-        return Request(req_line, request_headers)
-
-    def parser_request(self, request_line):
-        """
-        method, url, http protocol 파서
-        :return:
-        """
-        req_line_arr = request_line.split(b' ')
-        d = {"method": req_line_arr[0],
-             "url": req_line_arr[1],
-             "protocol": req_line_arr[2]}
-        return d
-
-    # TODO BytesParser().parsebytes() 구현하기
-    def parser_headers(self, request_headers):
-        """
-        헤더 파서
-        :return:
-        """
-        return BytesParser().parsebytes(request_headers)
-
-    # TODO parser_body
-    def parser_body(self):
-        pass
 
 
 class Request:

@@ -14,6 +14,7 @@
 # TODO wsgi 호환
 # TODO weakref 객체 확인하기
 # TODO 초기 파라미터 셋팅
+# TODO CORS 구현
 # TODO http2 적용
 
 from web_server import WebServer
