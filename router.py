@@ -8,6 +8,16 @@ import types
 def prefix_str(s):
     return s.split('{', 1)[0]
 
+
+def replace_rexp(path):
+    # int 정규형
+    rexp = re.sub('\{\w*:int\}', '\d*', path)
+    # str 정규형
+    rexp = re.sub('\{\w*:str\}', '\w*', rexp)
+    rexp = re.compile(rexp)
+
+    return rexp
+
 # TODO func 빼기
 # TODO 변수 이름 바꾸기
 #
@@ -19,11 +29,11 @@ class Router:
             if '{' not in path:
                 self.mapping_dict[path] = (funcs, [])
                 continue
+
             prefix = prefix_str(path)
-            # TODO 문자열 정규형 추가
-            # int 정규형
-            rexp_path = re.sub('\{\w*:int\}', '\d*', path)
-            rexp = re.compile(rexp_path)
+
+            rexp = replace_rexp(path)
+
             self.mapping_list.append((prefix, rexp, path, funcs))
 
     def lookup(self, req_method, req_path):
@@ -39,7 +49,12 @@ class Router:
             m = rexp.match(req_path)
             if m:
                 parms = []
-                for origin_data, req_data in zip(path.split("/"), req_path.split("/")):
+                path_split = path.split("/")
+                req_split = req_path.split("/")
+                if len(path_split) != len(req_split):
+                    continue
+
+                for origin_data, req_data in zip(path_split, req_split):
                     if origin_data == req_data:
                         continue
                     temp = re.search('\{(\w*):(\w*)\}', origin_data).groups()
@@ -69,6 +84,6 @@ if __name__ == '__main__':
     assert router.lookup("POST", "/api/books/") == (BooksAPI.do_create, [])
     assert router.lookup("GET", "/api/orders/") == (OrdersApi.do_show, [])
     assert router.lookup("POST", "/api/orders/") == (OrdersApi.do_update, [])
-    assert router.lookup("GET", "/api/books/123/") == (BooksAPI.do_index, [types.SimpleNamespace(name='id', type='int', data='123')])
-    # TODO 예외처리 추가 하기
-    # assert router.lookup("GET", "/api/books/23/test/") == (None, None, None)
+    assert router.lookup("GET", "/api/books/123/") == (BooksAPI.do_index,
+                                                       [types.SimpleNamespace(name='id', type='int', data='123')])
+    assert router.lookup("GET", "/api/books/23/test/") == (None, None, None)
