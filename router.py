@@ -64,26 +64,3 @@ class Router:
                 return func, parms
 
         return None, None, None
-
-
-if __name__ == '__main__':
-
-    from apis.books import BooksAPI
-    from apis.orders import OrdersApi
-
-    # path, class, {method: func,}
-    mapping_list = [
-
-        (r"/api/books/", {"GET": BooksAPI.do_index, "POST": BooksAPI.do_create}),
-        (r"/api/books/{id:int}/", {"GET": BooksAPI.do_index, "PUT": BooksAPI.do_create}),
-        (r"/api/orders/", {"GET": OrdersApi.do_show, "POST": OrdersApi.do_update})
-    ]
-
-    router = Router(mapping_list)
-    assert router.lookup("GET", "/api/books/") == (BooksAPI.do_index, [])
-    assert router.lookup("POST", "/api/books/") == (BooksAPI.do_create, [])
-    assert router.lookup("GET", "/api/orders/") == (OrdersApi.do_show, [])
-    assert router.lookup("POST", "/api/orders/") == (OrdersApi.do_update, [])
-    assert router.lookup("GET", "/api/books/123/") == (BooksAPI.do_index,
-                                                       [types.SimpleNamespace(name='id', type='int', data='123')])
-    assert router.lookup("GET", "/api/books/23/test/") == (None, None, None)
