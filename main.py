@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# TODO 데이터 받고 / 보내기 (message class 상세하기)
 # TODO http 호환 클래스 ( http 상태 코드 선언)
 # -----------------------------------------------------
 # TODO http method 구현하기

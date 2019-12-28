@@ -4,7 +4,7 @@ import socket
 from _thread import start_new_thread
 
 from logger import Logger
-from message import Message
+from handle import Handle
 from utils import args_to_str
 
 LOG = Logger.instance().log
@@ -27,7 +27,9 @@ class WebServer:
         self.lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.lsock.bind((self.host, self.port))
         self.lsock.listen()
+
         LOG.info(args_to_str("listion on ", (self.host, self.port)))
+
         self.lsock.setblocking(False)
         self.sel.register(self.lsock, selectors.EVENT_READ, data=None)
 
@@ -38,11 +40,12 @@ class WebServer:
                     if key.data is None:
                         self.accept_handler(key.fileobj)
                     else:
-                        message_obj = key.data
+                        handle_obj = key.data
                         try:
-                            message_obj.process_events(mask)
-                        except Exception:
-                            message_obj.close()
+                            handle_obj.process_events(mask)
+                        except Exception as e:
+                            LOG.error(e)
+                            handle_obj.close()
         except KeyboardInterrupt:
             LOG.info("close server ")
         finally:
@@ -60,5 +63,5 @@ class WebServer:
 
     def thread_socket(self, conn, addr):
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        message_obj = Message(self.sel, conn, addr)
-        self.sel.register(conn, events, data=message_obj)
+        handle_obj = Handle(self.sel, conn, addr)
+        self.sel.register(conn, events, data=handle_obj)

@@ -9,12 +9,12 @@ from urls import router
 LOG = Logger.instance().log
 
 __all__ = (
-    'Message', 'Request'
+    'Handle', 'Request'
 )
 # TODO http status code -> init.py
 
-# TODO handle
-class Message:
+
+class Handle:
 
     __slots__ = ["selector", "sock", "addr", "_recv_buffer", "_send_buffer", "_json_header_len", "request"]
 
@@ -76,12 +76,15 @@ class Message:
     def _write(self, request_handler):
 
         # TODO send 함수 만들기 (헤더 자동 만들기 함수)
+        # TODO 경로가 없는 None 일 경우 처리하기 ( handle.py - 86 - ERROR - 'NoneType' object is not callable )
 
         if self._recv_buffer:
+            ret_data = ''
+
             try:
                 ret_data = request_handler[0](self.request)
             except Exception as e:
-                LOG.info(e)
+                LOG.error(e)
             LOG.info(args_to_str(type(string_to_byte(ret_data)), string_to_byte(ret_data)))
 
             response_data = "HTTP/1.1 200 OK\nContent-Type: text/html\nAccept-Charset: utf-8\n\n{}\n".format(ret_data)
@@ -90,7 +93,7 @@ class Message:
             except BlockingIOError:
                 pass
             except Exception as e:
-                LOG.info(e)
+                LOG.error(e)
 
             self.close()
 
