@@ -19,6 +19,11 @@ mapping_list = [
 ]
 
 router = Router(mapping_list)
+router2 = Router(mapping_list)
+
+
+assert id(router) == id(router2)
+
 assert router.lookup("GET", "/") == (HomesAPI.do_index, [])
 assert router.lookup("GET", "/api/books/") == (BooksAPI.do_index, [])
 assert router.lookup("POST", "/api/books/") == (BooksAPI.do_create, [])

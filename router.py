@@ -18,13 +18,12 @@ def replace_rexp(path):
 
     return rexp
 
-# TODO 싱글턴 패턴 구현
 # TODO 변수 이름 바꾸기
+# TODO warrning 처리 하기
 
 
-class Router(object):
+class Router(object, metaclass=Singleton):
 
-    __metaclass__ = Singleton
     __slots__ = ["mapping_list", "mapping_dict"]
 
     def __init__(self, mapping):
