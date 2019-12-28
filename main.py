@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# TODO pytest 설정하기
 # TODO 데이터 받고 / 보내기 (message class 상세하기)
 # TODO http 호환 클래스 ( http 상태 코드 선언)
 # -----------------------------------------------------
 # TODO http method 구현하기
 # TODO 미들웨어 구현하기
-# TODO file read view 구현하기
+# TODO file read view 구현하기 (html)
+# TODO static 구현
 # -----------------------------------------------------
 # TODO 클래스 이름 바꾸기
 # TODO type 지정하기 (from typing import Dict, Tuple, Union, Iterator, Sequence, List)

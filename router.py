@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # https://www.slideshare.net/kwatch/how-to-make-the-fastest-router-in-python
-
 import re
 import types
+from singleton import Singleton
 
 
 def prefix_str(s):
@@ -18,10 +18,15 @@ def replace_rexp(path):
 
     return rexp
 
-# TODO func 빼기
+# TODO 싱글턴 패턴 구현
 # TODO 변수 이름 바꾸기
-#
-class Router:
+
+
+class Router(object):
+
+    __metaclass__ = Singleton
+    __slots__ = ["mapping_list", "mapping_dict"]
+
     def __init__(self, mapping):
         self.mapping_list = []
         self.mapping_dict = {}

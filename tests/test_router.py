@@ -8,15 +8,18 @@ import types
 
 from apis.books import BooksAPI
 from apis.orders import OrdersApi
+from apis.homes import HomesAPI
 
 mapping_list = [
 	# path, {method: func,}
+	(r"/", {"GET": HomesAPI.do_index, "POST": HomesAPI.do_create}),
 	(r"/api/books/", {"GET": BooksAPI.do_index, "POST": BooksAPI.do_create}),
 	(r"/api/books/{id:int}/", {"GET": BooksAPI.do_index, "PUT": BooksAPI.do_create}),
 	(r"/api/orders/", {"GET": OrdersApi.do_show, "POST": OrdersApi.do_update})
 ]
 
 router = Router(mapping_list)
+assert router.lookup("GET", "/") == (HomesAPI.do_index, [])
 assert router.lookup("GET", "/api/books/") == (BooksAPI.do_index, [])
 assert router.lookup("POST", "/api/books/") == (BooksAPI.do_create, [])
 assert router.lookup("GET", "/api/orders/") == (OrdersApi.do_show, [])

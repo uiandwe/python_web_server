@@ -2,8 +2,9 @@
 import selectors
 
 from logger import Logger
-from utils import args_to_str
+from utils import args_to_str, byte_to_string
 from parser.parser import ParserHttp
+from urls import router
 
 LOG = Logger.instance().log
 
@@ -52,14 +53,14 @@ class Message:
         # TODO body 확인
 
     def write(self):
-        # TODO router (파일 or 메소드 확인)
-        # @app.route("/")
-        # @app.route("/api/v1/users/", methods=['GET', 'POST', 'PUT'])
-        # @app.route('/<int:year>/<int:month>/<title>')
-
 
         # TODO send
-
+        LOG.info(args_to_str("url ", self.request.url))
+        LOG.info(args_to_str("method ", self.request.method))
+        try:
+            LOG.info(router.lookup(self.request.method, str(self.request.url)))
+        except Exception as e:
+            LOG.info(e)
 
         self._write()
 
@@ -102,17 +103,17 @@ class Message:
 
 # TODO RequestHandler
 class Request:
-    __slots__ = ["command", "url", "protocol", "headers", "body"]
+    __slots__ = ["method", "url", "protocol", "headers", "body"]
 
     def __init__(self, request_line, request_headers):
-        self.command = request_line['method']
+        self.method = request_line['method']
         self.url = request_line['url']
         self.protocol = request_line['protocol']
         self.headers = request_headers
         self.body = None
 
     def __repr__(self):
-        return "{} {} {} {}".format(self.__class__, self.command, self.url, self.protocol)
+        return "{} {} {} {}".format(self.__class__, self.method, self.url, self.protocol)
 
 # TODO /Users/sj.hyeon/development/env/python36/lib/python3.6/site-packages/werkzeug/wrappers/base_response.py
 class Response:
