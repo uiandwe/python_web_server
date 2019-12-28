@@ -2,7 +2,7 @@
 import selectors
 
 from logger import Logger
-from utils import args_to_str, byte_to_string
+from utils import args_to_str, string_to_byte
 from parser.parser import ParserHttp
 from urls import router
 
@@ -53,17 +53,14 @@ class Message:
         # TODO body 확인
 
     def write(self):
+        request_handler = None
+        if self.request and self.request.method and self.request.url:
+            try:
+                request_handler = router.lookup(self.request.method.decode('utf-8'), self.request.url.decode('utf-8'))
+            except Exception as e:
+                LOG.info(e)
 
-        # TODO send
-        LOG.info(args_to_str("url ", self.request.url))
-        LOG.info(args_to_str("method ", self.request.method))
-        try:
-            LOG.info(router.lookup(self.request.method, str(self.request.url)))
-        except Exception as e:
-            LOG.info(e)
-
-        self._write()
-
+        self._write(request_handler)
 
     def _read(self):
         try:
@@ -76,14 +73,24 @@ class Message:
             else:
                 raise RuntimeError("Peer closed.")
 
-    def _write(self):
+    def _write(self, request_handler):
+
+        # TODO send 함수 만들기 (헤더 자동 만들기 함수)
+
         if self._recv_buffer:
-            LOG.info(args_to_str("sending", repr(self._recv_buffer), "to", self.addr))
             try:
-                # sent = self.sock.send(self._send_buffer)
-                self.sock.send(b"HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html><body>Hello World</body></html>\n")
+                ret_data = request_handler[0](self.request)
+            except Exception as e:
+                LOG.info(e)
+            LOG.info(args_to_str(type(string_to_byte(ret_data)), string_to_byte(ret_data)))
+
+            response_data = "HTTP/1.1 200 OK\nContent-Type: text/html\nAccept-Charset: utf-8\n\n{}\n".format(ret_data)
+            try:
+                self.sock.send(string_to_byte(response_data))
             except BlockingIOError:
                 pass
+            except Exception as e:
+                LOG.info(e)
 
             self.close()
 
