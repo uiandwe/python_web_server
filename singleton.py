@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+# https://wikidocs.net/3693
 
-__all__ = ('Singleton')
+__all__ = (
+    'Singleton'
+)
 
 
 class Singleton(type):

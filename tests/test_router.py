@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-
-from router import Router
 import types
 
 from apis.books import BooksAPI
-from apis.orders import OrdersApi
 from apis.homes import HomesAPI
+from apis.orders import OrdersApi
+from router.router import Router
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 mapping_list = [
 	# path, {method: func,}
@@ -22,13 +22,15 @@ router = Router(mapping_list)
 router2 = Router(mapping_list)
 
 
-assert id(router) == id(router2)
+def test_router_singleton():
+	assert id(router) == id(router2)
 
-assert router.lookup("GET", "/") == (HomesAPI.do_index, [])
-assert router.lookup("GET", "/api/books/") == (BooksAPI.do_index, [])
-assert router.lookup("POST", "/api/books/") == (BooksAPI.do_create, [])
-assert router.lookup("GET", "/api/orders/") == (OrdersApi.do_show, [])
-assert router.lookup("POST", "/api/orders/") == (OrdersApi.do_update, [])
-assert router.lookup("GET", "/api/books/123/") == (BooksAPI.do_index,
-												   [types.SimpleNamespace(name='id', type='int', data='123')])
-assert router.lookup("GET", "/api/books/23/test/") == (None, None, None)
+
+def test_router_lookup():
+	assert router.lookup("GET", "/") == (HomesAPI.do_index, [])
+	assert router.lookup("GET", "/api/books/") == (BooksAPI.do_index, [])
+	assert router.lookup("POST", "/api/books/") == (BooksAPI.do_create, [])
+	assert router.lookup("GET", "/api/orders/") == (OrdersApi.do_show, [])
+	assert router.lookup("POST", "/api/orders/") == (OrdersApi.do_update, [])
+	assert router.lookup("GET", "/api/books/123/") == (BooksAPI.do_index, [types.SimpleNamespace(name='id', type='int', data='123')])
+	assert router.lookup("GET", "/api/books/23/test/") == (None, None, None)

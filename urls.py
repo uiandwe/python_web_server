@@ -2,7 +2,7 @@
 from apis.books import BooksAPI
 from apis.orders import OrdersApi
 from apis.homes import HomesAPI
-from router import Router
+from router.router import Router
 
 __all__ = (
     'router'
