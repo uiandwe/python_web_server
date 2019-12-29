@@ -43,12 +43,18 @@ class ParserHttp(ParserImp):
 
     def parser_request(self, request_line: str) -> dict:
         """
-        method, url, http protocol 파서
+        method, url, http protocol, http version, url params,  파서
         :return:
         """
         req_line_arr = request_line.split(b' ')
 
+        method = req_line_arr[0].decode('utf-8')
+
         url_split = req_line_arr[1].decode('utf-8').split('?')
+
+        protocol = req_line_arr[2].decode('utf-8')
+        base_version_number = protocol.split('/', 1)[1]
+        version_number = tuple(base_version_number.split("."))
 
         url_params = []
         origin_url = url_split[0]
@@ -56,11 +62,11 @@ class ParserHttp(ParserImp):
         if len(url_split) > 1:
             url_params = self.parser_url_params(url_split[1:])
 
-        d = {"method": req_line_arr[0].decode('utf-8'),
-             "url": origin_url,
-             "protocol": req_line_arr[2].decode('utf-8'),
-             'params': url_params}
-        return d
+        return {"method": method,
+                "url": origin_url,
+                "protocol": protocol,
+                "version": version_number,
+                "params": url_params}
 
     def parser_url_params(self, params_arr) -> dict:
         """

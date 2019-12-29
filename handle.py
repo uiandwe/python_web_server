@@ -9,6 +9,10 @@ from http import HTTPStatus
 
 LOG = Logger.instance().log
 
+responses = {
+    v._value_: (v.phrase, v.description) for v in HTTPStatus.__members__.values()
+}
+
 __all__ = (
     'Handle', 'RequestHandler', 'ResponseHandler'
 )
@@ -42,11 +46,26 @@ class Handle:
             self.request = RequestHandler(req_line, request_headers)
             LOG.info(self.request)
 
-        # TODO 다른 프로토콜도 가능하도록 설계하기
-        if self.request is None or self.request.protocol in [b'http/1.1']:
+        # only HTTP
+        if self.request is None or not self.request.protocol.startswith("HTTP/"):
+            return
+
+        # 1.0 이하는 에러
+        if self.request.version < ('1', '0'):
             return
 
         # TODO body 확인
+
+    def _read(self):
+        try:
+            data = self.sock.recv(4096)
+        except BlockingIOError:
+            pass
+        else:
+            if data:
+                self._recv_buffer += data
+            else:
+                raise RuntimeError("Peer closed.")
 
     def write(self):
         request_handler = None
@@ -61,17 +80,6 @@ class Handle:
         else:
             self.close()
 
-    def _read(self):
-        try:
-            data = self.sock.recv(4096)
-        except BlockingIOError:
-            pass
-        else:
-            if data:
-                self._recv_buffer += data
-            else:
-                raise RuntimeError("Peer closed.")
-
     def _write(self, request_handler):
 
         # TODO send 함수 만들기 (헤더 자동 만들기 함수)
@@ -83,9 +91,12 @@ class Handle:
                 ret_data = request_handler[0](self.request)
             except Exception as e:
                 LOG.error(e)
-            LOG.info(args_to_str(type(string_to_byte(ret_data)), string_to_byte(ret_data)))
 
-            response_data = "HTTP/1.1 200 OK\nContent-Type: text/html\nAccept-Charset: utf-8\n\n{}\n".format(ret_data)
+            code = 200
+            headers = [('Content-Type', 'text/html'), ('Accept-Charset', 'utf-8')]
+            response_data = ResponseHandler(self.request.protocol, code, headers, ret_data)()
+            LOG.info(response_data)
+
             try:
                 self.sock.send(string_to_byte(response_data))
             except BlockingIOError:
@@ -111,33 +122,71 @@ class Handle:
 
 
 class RequestHandler:
-    __slots__ = ["method", "url", "protocol", "params", "headers", "body"]
+    __slots__ = ["method", "url", "protocol", "version", "params", "headers", "body"]
 
     def __init__(self, request_line, request_headers):
         self.method = request_line['method']
         self.url = request_line['url']
         self.protocol = request_line['protocol']
+        self.version = request_line['version']
         self.params = request_line['params']
         self.headers = request_headers
         self.body = None
 
-        responses = {
-            v._value_: (v.phrase, v.description)
-            for v in HTTPStatus.__members__.values()
-        }
-
     def __repr__(self):
-        return "{} {} {} {} {}".format(self.__class__, self.method, self.url, self.protocol, self.params)
+        return "{} {} {} {} {} {}".format(self.__class__, self.method, self.url, self.protocol, self.version, self.params)
 
 
 class ResponseHandler:
-    def __init__(self, request):
-        self.error_code = None
-        self.error_message = None
-        self.command = None
-        self.path = None
-        self.request_version = None
-        self.headers = None
+
+    __slots__ = ["code", "message", "protocol", "headers_buffer", "body"]
+
+    def __init__(self, protocol, code, headers, body):
+        self.code = code
+        self.message = responses[code][0]
+        self.protocol = protocol
+        self.headers_buffer = self.set_headers(headers)
+        self.body = body
+
+    def __call__(self, *args, **kwargs):
+        self.end_headers()
+
+        _wfile = "{} {} {}".format(self.protocol, self.code, self.message)
+        _wfile += "\r\n"
+        _wfile += "".join(self.headers_buffer)
+        _wfile += "{}\r\n".format(self.body)
+        return _wfile
+
+    def end_headers(self):
+        self.headers_buffer.append("\r\n")
+        # self.flush_headers()
+
+    def send_response_only(self, code, message=None):
+        """Send the response header only."""
+        if self.request_version != 'HTTP/0.9':
+            if message is None:
+                if code in self.responses:
+                    message = self.responses[code][0]
+                else:
+                    message = ''
+            if not hasattr(self, '_headers_buffer'):
+                self._headers_buffer = []
+            self._headers_buffer.append(("%s %d %s\r\n" %
+                    (self.protocol_version, code, message)).encode(
+                        'latin-1', 'strict'))
+
+    def set_headers(self, headers):
+        headers_buffer = []
+
+        for keyword, value in headers:
+            # headers_buffer.append(("%s: %s\r\n" % (keyword, value)).encode('latin-1', 'strict'))
+            headers_buffer.append(("%s: %s\r\n" % (keyword, value)))
+        return headers_buffer
+
+    def flush_headers(self):
+        if hasattr(self, '_headers_buffer'):
+            self.wfile.write(b"".join(self.headers_buffer))
+            self.headers_buffer = []
 
 
 class RenderHandler:
