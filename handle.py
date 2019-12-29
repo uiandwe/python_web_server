@@ -5,6 +5,7 @@ from logger import Logger
 from utils import args_to_str, string_to_byte
 from parser.parser import ParserHttp
 from urls import router
+from http import HTTPStatus
 
 LOG = Logger.instance().log
 
@@ -120,12 +121,17 @@ class RequestHandler:
         self.headers = request_headers
         self.body = None
 
+        responses = {
+            v._value_: (v.phrase, v.description)
+            for v in HTTPStatus.__members__.values()
+        }
+
     def __repr__(self):
         return "{} {} {} {} {}".format(self.__class__, self.method, self.url, self.protocol, self.params)
 
 
 class ResponseHandler:
-    def __init__(self):
+    def __init__(self, request):
         self.error_code = None
         self.error_message = None
         self.command = None
@@ -135,4 +141,6 @@ class ResponseHandler:
 
 
 class RenderHandler:
-    pass
+    def __init__(self):
+        pass
+
