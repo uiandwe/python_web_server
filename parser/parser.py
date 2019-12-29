@@ -20,7 +20,11 @@ class ParserImp:
         raise NotImplementedError()
 
     @abstractmethod
-    def parser_body(self):
+    def parser_headers(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def parser_url_params(self):
         raise NotImplementedError()
 
 
@@ -37,18 +41,41 @@ class ParserHttp(ParserImp):
         LOG.info(request_headers)
         return req_line, request_headers
 
-    def parser_request(self, request_line):
+    def parser_request(self, request_line: str) -> dict:
         """
         method, url, http protocol 파서
         :return:
         """
         req_line_arr = request_line.split(b' ')
-        d = {"method": req_line_arr[0],
-             "url": req_line_arr[1],
-             "protocol": req_line_arr[2]}
+
+        url_split = req_line_arr[1].decode('utf-8').split('?')
+
+        url_params = []
+        origin_url = url_split[0]
+
+        if len(url_split) > 1:
+            url_params = self.parser_url_params(url_split[1:])
+
+        d = {"method": req_line_arr[0].decode('utf-8'),
+             "url": origin_url,
+             "protocol": req_line_arr[2].decode('utf-8'),
+             'params': url_params}
         return d
 
-    def parser_headers(self, request_headers):
+    def parser_url_params(self, params_arr) -> dict:
+        """
+        url 파라미터 파서
+        :param url:
+        :return:
+        """
+        params_dict = {}
+        if len(params_arr) > 0:
+            for param in params_arr:
+                param_split = param.split("=")
+                params_dict[param_split[0]] = param_split[1]
+        return params_dict
+
+    def parser_headers(self, request_headers: str) -> list:
         """
         헤더 파서
         :return:

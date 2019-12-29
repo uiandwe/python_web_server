@@ -9,7 +9,7 @@ from urls import router
 LOG = Logger.instance().log
 
 __all__ = (
-    'Handle', 'Request'
+    'Handle', 'RequestHandler', 'ResponseHandler'
 )
 # TODO http status code -> init.py
 
@@ -25,7 +25,6 @@ class Handle:
         self._recv_buffer = b""
         self._send_buffer = b""
         self._json_header_len = None
-        # TODO 미리 request로 선언해도 되는가?
         self.request = None
 
     def process_events(self, mask):
@@ -39,16 +38,12 @@ class Handle:
 
         if self._recv_buffer:
             req_line, request_headers = ParserHttp()(self._recv_buffer)
-            self.request = Request(req_line, request_headers)
+            self.request = RequestHandler(req_line, request_headers)
             LOG.info(self.request)
 
         # TODO 다른 프로토콜도 가능하도록 설계하기
         if self.request is None or self.request.protocol in [b'http/1.1']:
             return
-
-        # TODO 헤더 확인
-
-        # TODO 파라미터 확인
 
         # TODO body 확인
 
@@ -56,11 +51,14 @@ class Handle:
         request_handler = None
         if self.request and self.request.method and self.request.url:
             try:
-                request_handler = router.lookup(self.request.method.decode('utf-8'), self.request.url.decode('utf-8'))
+                request_handler = router.lookup(self.request.method, self.request.url)
             except Exception as e:
                 LOG.info(e)
 
-        self._write(request_handler)
+        if request_handler:
+            self._write(request_handler)
+        else:
+            self.close()
 
     def _read(self):
         try:
@@ -76,8 +74,7 @@ class Handle:
     def _write(self, request_handler):
 
         # TODO send 함수 만들기 (헤더 자동 만들기 함수)
-        # TODO 경로가 없는 None 일 경우 처리하기 ( handle.py - 86 - ERROR - 'NoneType' object is not callable )
-
+        # TODO request_handler == (None, None) 일때 404 에러 반환
         if self._recv_buffer:
             ret_data = ''
 
@@ -111,22 +108,23 @@ class Handle:
         finally:
             self.sock = None
 
-# TODO RequestHandler
-class Request:
-    __slots__ = ["method", "url", "protocol", "headers", "body"]
+
+class RequestHandler:
+    __slots__ = ["method", "url", "protocol", "params", "headers", "body"]
 
     def __init__(self, request_line, request_headers):
         self.method = request_line['method']
         self.url = request_line['url']
         self.protocol = request_line['protocol']
+        self.params = request_line['params']
         self.headers = request_headers
         self.body = None
 
     def __repr__(self):
-        return "{} {} {} {}".format(self.__class__, self.method, self.url, self.protocol)
+        return "{} {} {} {} {}".format(self.__class__, self.method, self.url, self.protocol, self.params)
 
-# TODO /Users/sj.hyeon/development/env/python36/lib/python3.6/site-packages/werkzeug/wrappers/base_response.py
-class Response:
+
+class ResponseHandler:
     def __init__(self):
         self.error_code = None
         self.error_message = None
@@ -135,3 +133,6 @@ class Response:
         self.request_version = None
         self.headers = None
 
+
+class RenderHandler:
+    pass

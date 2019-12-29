@@ -3,12 +3,14 @@ import os
 import sys
 import types
 
+# TODO 해당 구문 쉽게 쓸수 있는지 확인하기
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
 from apis.books import BooksAPI
 from apis.homes import HomesAPI
 from apis.orders import OrdersApi
 from router.router import Router
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 mapping_list = [
 	# path, {method: func,}
