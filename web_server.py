@@ -7,7 +7,7 @@ from logger import Logger
 from handle import Handle
 from utils import args_to_str
 
-LOG = Logger.instance().log
+LOG = Logger().log
 
 __all__ = (
     'WebServer'

@@ -7,4 +7,4 @@ class HomesAPI:
 
     @staticmethod
     def do_create():
-        print("fuck do_create")
+        print("home do_create")

@@ -8,7 +8,7 @@ import types
 from logger import Logger
 from singleton import Singleton
 
-LOG = Logger.instance().log
+LOG = Logger().log
 
 
 __all__ = (

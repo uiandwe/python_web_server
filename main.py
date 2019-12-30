@@ -19,7 +19,7 @@
 from web_server import WebServer
 from logger import Logger
 
-LOG = Logger.instance().log
+LOG = Logger().log
 
 if __name__ == '__main__':
     LOG.info("server start!!!")

@@ -6,7 +6,7 @@ from io import StringIO
 from abc import ABCMeta, abstractmethod
 from logger import Logger
 
-LOG = Logger.instance().log
+LOG = Logger().log
 
 __all__ = (
     'ParserHttp'

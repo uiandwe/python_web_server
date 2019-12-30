@@ -8,6 +8,7 @@ https://docs.python.org/ko/3/library/logging.handlers.html
 
 import os
 import logging
+from singleton import Singleton
 from logging.handlers import TimedRotatingFileHandler
 
 __all__ = (
@@ -15,7 +16,7 @@ __all__ = (
 )
 
 
-class Logger:
+class Logger(metaclass=Singleton):
     __slots__ = ["_log"]
     __instance = None
 
@@ -38,16 +39,6 @@ class Logger:
 
         self._log.addHandler(time_log_handler)
         self._log.addHandler(stream_handler)
-
-    @classmethod
-    def __getInstance(cls):
-        return cls.__instance
-
-    @classmethod
-    def instance(cls, *args, **kargs):
-        cls.__instance = cls(*args, **kargs)
-        cls.instance = cls.__getInstance
-        return cls.__instance
 
     @property
     def log(self):
