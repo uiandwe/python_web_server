@@ -7,7 +7,7 @@ from parser.parser import ParserHttp
 from urls import router
 from http import HTTPStatus
 
-LOG = Logger.instance().log
+LOG = Logger().log
 
 responses = {
     v._value_: (v.phrase, v.description) for v in HTTPStatus.__members__.values()
@@ -16,7 +16,18 @@ responses = {
 __all__ = (
     'Handle', 'RequestHandler', 'ResponseHandler'
 )
-# TODO http status code -> init.py
+
+class ServerError(Exception):
+    __slots__ = ['msg']
+
+    def __init__(self, msg='server error'):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+# TODO headers 선언하기
+# TODO 상황별 http code
 
 
 class Handle:
@@ -82,19 +93,27 @@ class Handle:
 
     def _write(self, request_handler):
 
-        # TODO send 함수 만들기 (헤더 자동 만들기 함수)
-        # TODO request_handler == (None, None) 일때 404 에러 반환
         if self._recv_buffer:
             ret_data = ''
+            if request_handler is not (None, None):
+                try:
+                    ret_data = request_handler[0]()
 
-            try:
-                ret_data = request_handler[0](self.request)
-            except Exception as e:
-                LOG.error(e)
+                    if ret_data is None:
+                        raise ServerError
 
-            code = 200
+                # TODO 500 error 추가
+                except Exception as e:
+                    LOG.error(e)
+
+            if len(ret_data) > 0:
+                code = 200
+            else:
+                code = 404
+
             headers = [('Content-Type', 'text/html'), ('Accept-Charset', 'utf-8')]
             response_data = ResponseHandler(self.request.protocol, code, headers, ret_data)()
+
             LOG.info(response_data)
 
             try:
@@ -146,7 +165,7 @@ class ResponseHandler:
         self.message = responses[code][0]
         self.protocol = protocol
         self.headers_buffer = self.set_headers(headers)
-        self.body = body
+        self.body = '' if body is None else body
 
     def __call__(self, *args, **kwargs):
         self.end_headers()
@@ -154,42 +173,20 @@ class ResponseHandler:
         _wfile = "{} {} {}".format(self.protocol, self.code, self.message)
         _wfile += "\r\n"
         _wfile += "".join(self.headers_buffer)
-        _wfile += "{}\r\n".format(self.body)
+
+        if len(self.body) > 0:
+            _wfile += "{}\r\n".format(self.body)
         return _wfile
 
     def end_headers(self):
         self.headers_buffer.append("\r\n")
-        # self.flush_headers()
-
-    def send_response_only(self, code, message=None):
-        """Send the response header only."""
-        if self.request_version != 'HTTP/0.9':
-            if message is None:
-                if code in self.responses:
-                    message = self.responses[code][0]
-                else:
-                    message = ''
-            if not hasattr(self, '_headers_buffer'):
-                self._headers_buffer = []
-            self._headers_buffer.append(("%s %d %s\r\n" %
-                    (self.protocol_version, code, message)).encode(
-                        'latin-1', 'strict'))
 
     def set_headers(self, headers):
         headers_buffer = []
 
         for keyword, value in headers:
-            # headers_buffer.append(("%s: %s\r\n" % (keyword, value)).encode('latin-1', 'strict'))
             headers_buffer.append(("%s: %s\r\n" % (keyword, value)))
         return headers_buffer
 
-    def flush_headers(self):
-        if hasattr(self, '_headers_buffer'):
-            self.wfile.write(b"".join(self.headers_buffer))
-            self.headers_buffer = []
 
-
-class RenderHandler:
-    def __init__(self):
-        pass
 

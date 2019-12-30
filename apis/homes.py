@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
+from http.render import RenderHandler
+from logger import Logger
+
+LOG = Logger().log
+
+__all__ = (
+    'HomesAPI'
+)
+
 
 class HomesAPI:
-    @staticmethod
-    def do_index(request):
-        return "<html><head><meta charset='UTF-8' /></head><body>english 한글 </body></html>"
+
+    @classmethod
+    def do_index(cls):
+        return RenderHandler(cls.__name__, 'index.html')()
 
     @staticmethod
     def do_create():

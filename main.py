@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-# TODO http 호환 클래스 ( http 상태 코드 선언)
-# -----------------------------------------------------
 # TODO http method 구현하기
 # TODO 미들웨어 구현하기
-# TODO file read view 구현하기 (html)
 # TODO static 구현
 # -----------------------------------------------------
+# TODO 폴더와 파일 레벨 맞추기
 # TODO 클래스 이름 바꾸기
 # TODO type 지정하기 (from typing import Dict, Tuple, Union, Iterator, Sequence, List)
 # TODO test 로직 추가 하기

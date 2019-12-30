@@ -50,6 +50,7 @@ class Router(object, metaclass=Singleton):
 
             self.mapping_list.append((prefix, regx_path, path, funcs))
 
+    # TODO head 메소드 확장하기
     def lookup(self, req_method, req_path):
         path_dict = self.mapping_dict.get(req_path)
         if path_dict:
@@ -81,4 +82,4 @@ class Router(object, metaclass=Singleton):
                 func = funcs.get(req_method)
                 return func, parms
 
-        return None, None, None
+        return None, None

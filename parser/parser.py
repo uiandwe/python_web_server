@@ -12,6 +12,7 @@ __all__ = (
     'ParserHttp'
 )
 
+
 class ParserImp:
     __metaclass__ = ABCMeta
 
@@ -38,7 +39,7 @@ class ParserHttp(ParserImp):
         req_line = self.parser_request(req_line)
 
         request_headers = self.parser_headers(headers_alone)
-        LOG.info(request_headers)
+
         return req_line, request_headers
 
     def parser_request(self, request_line: str) -> dict:
