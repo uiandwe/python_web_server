@@ -6,7 +6,8 @@ import re
 import types
 
 from logger import Logger
-from singleton import Singleton
+from utils.klass.singleton import Singleton
+from utils.decorator.memoization import Memoized
 
 LOG = Logger().log
 
@@ -50,7 +51,7 @@ class Router(object, metaclass=Singleton):
 
             self.mapping_list.append((prefix, regx_path, path, funcs))
 
-    # TODO head 메소드 확장하기
+    @Memoized
     def lookup(self, req_method, req_path):
         path_dict = self.mapping_dict.get(req_path)
         if path_dict:

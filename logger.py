@@ -8,7 +8,7 @@ https://docs.python.org/ko/3/library/logging.handlers.html
 
 import os
 import logging
-from singleton import Singleton
+from utils.klass.singleton import Singleton
 from logging.handlers import TimedRotatingFileHandler
 
 __all__ = (

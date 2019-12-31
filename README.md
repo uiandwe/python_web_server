@@ -12,11 +12,13 @@
 - logs/ : 로그 파일 저장 디렉토리(날짜별로 저장)  
 - tests/ : 유닛 및 전체 테스트 클래스 모음 
 - parser/ : 통신 객체의 파서 클래스 
-- router/ : 통신 요청 url 객체 클래스 
+- router/ : 통신 요청 url 객체 클래스
+- static/ : 이미지/css 등의 static 폴더 
+- template : html 템플릿 폴더 
 - handle :
 - logger :
 - main :
-- singleton : 
+- singleton : singleton 구현 클래스 
 - urls : 
 - urtils : 
 - web_server : 

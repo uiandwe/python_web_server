@@ -6,6 +6,8 @@ from utils import args_to_str, string_to_byte
 from parser.parser import ParserHttp
 from urls import router
 from http import HTTPStatus
+from utils.decorator.memoization import memoize
+
 
 LOG = Logger().log
 
@@ -17,6 +19,7 @@ __all__ = (
     'Handle', 'RequestHandler', 'ResponseHandler'
 )
 
+
 class ServerError(Exception):
     __slots__ = ['msg']
 
@@ -27,7 +30,7 @@ class ServerError(Exception):
         return self.msg
 
 # TODO headers 선언하기
-# TODO 상황별 http code
+# TODO 상황별 http code 로직 추가
 
 
 class Handle:
@@ -65,7 +68,11 @@ class Handle:
         if self.request.version < ('1', '0'):
             return
 
+        # TODO head 메소드 확장하기
+
         # TODO body 확인
+
+        # TODO http 메소드 확장
 
     def _read(self):
         try:
@@ -97,12 +104,7 @@ class Handle:
             ret_data = ''
             if request_handler is not (None, None):
                 try:
-                    ret_data = request_handler[0]()
-
-                    if ret_data is None:
-                        raise ServerError
-
-                # TODO 500 error 추가
+                    ret_data = self.get_response_data(request_handler)
                 except Exception as e:
                     LOG.error(e)
 
@@ -124,6 +126,25 @@ class Handle:
                 LOG.error(e)
 
             self.close()
+
+    @memoize
+    def get_response_data(self, request_handler):
+        LOG.info("check memo")
+        ret_data = ''
+        # TODO params를 request로 넣고, request를 파라미터로 보내기 (나중에 post 확장을 위해 , post의 데이터도 request로 넣어서 객체로 관리하자.
+        api_handler, params = request_handler
+        if api_handler:
+            try:
+                ret_data = api_handler()
+
+                if ret_data is None:
+                    raise ServerError
+
+            # TODO 500 error 추가
+            except Exception as e:
+                LOG.error(e)
+
+        return ret_data
 
     def close(self):
         LOG.info(args_to_str("closing connection to", self.addr))
