@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 import selectors
 
+from http import HTTPStatus
 from logger import Logger
-from utils import args_to_str, string_to_byte
 from parser.parser import ParserHttp
 from urls import router
-from http import HTTPStatus
-from utils.decorator.memoization import memoize
-
+from utils import args_to_str, string_to_byte
+from utils.decorator.memoization import LRU
 
 LOG = Logger().log
 
@@ -127,7 +126,7 @@ class Handle:
 
             self.close()
 
-    @memoize
+    @LRU()
     def get_response_data(self, request_handler):
         LOG.info("check memo")
         ret_data = ''
