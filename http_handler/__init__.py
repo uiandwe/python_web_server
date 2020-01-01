@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from enum import IntEnum
+from enum import IntEnum, Enum
 
-__all__ = ['HTTPStatus']
+__all__ = (
+    'HTTPStatus', 'HTTPContentType'
+)
 
 
 class HTTPStatus(IntEnum):
@@ -124,3 +126,22 @@ class HTTPStatus(IntEnum):
     NETWORK_AUTHENTICATION_REQUIRED = (511,
         'Network Authentication Required',
         'The client needs to authenticate to gain network access')
+
+
+# TODO header MIME
+class HTTPContentType(Enum):
+    """
+    content type list
+    """
+    GIF = 'image/gif'
+    JPG = 'image/jpeg'
+    SVG = 'image/svg+xml'
+    PNG = 'image/png'
+    ICO = 'image/x-icon'
+
+    CSS = 'text/css'
+    JS = 'text/javascript'
+    HTML = 'text/html'
+    JSON = 'application/json'
+
+    WOFF = 'application/x-font-woff'

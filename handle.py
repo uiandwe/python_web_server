@@ -4,21 +4,22 @@ import selectors
 from http_handler import HTTPStatus
 from logger import Logger
 from parser.parser import ParserHttp
+from router.router import StaticHandler
 from urls import router
 from utils import args_to_str, string_to_byte
 from utils.decorator.memoization import LRU
 
 LOG = Logger().log
 
-responses = {
-    v._value_: (v.phrase, v.description) for v in HTTPStatus.__members__.values()
+responses_code = {
+    v.value: (v.phrase, v.description) for v in HTTPStatus.__members__.values()
 }
 
 __all__ = (
     'Handle', 'RequestHandler', 'ResponseHandler'
 )
 
-default_headers = [('Content-Type', 'text/html'), ('Accept-Charset', 'utf-8')]
+default_headers = [('Accept-Charset', 'utf-8')]
 
 
 class ServerError(Exception):
@@ -30,7 +31,7 @@ class ServerError(Exception):
     def __str__(self):
         return self.msg
 
-# TODO header MIME 선언하기
+
 # TODO 상황별 http code 로직 추가
 
 
@@ -83,40 +84,37 @@ class Handle:
 
     def write(self):
 
-        # TODO http 메소드 확장
-        if self.request.method == 'HEAD':
-            pass
-        elif self.request.method == 'OPTIONS':
-            pass
-
         request_handler = None
         if self.request and self.request.method and self.request.url:
             try:
-                request_handler = router.lookup(self.request.method, self.request.url)
+                if self.request.url.startswith("/static/"):
+                    request_handler = (StaticHandler.do_index, [])
+                else:
+                    request_handler = router.lookup(self.request.method, self.request.url)
             except Exception as e:
                 LOG.info(e)
 
         if request_handler:
-            self._write(request_handler)
+            self.request.handler = request_handler
+            self._write(self.request)
         else:
             self.close()
 
-    def _write(self, request_handler):
+    def _write(self, request):
 
-        if self._recv_buffer:
+        if self._recv_buffer and request.handler is not (None, None):
             ret_data = ''
-            if request_handler is not (None, None):
-                try:
-                    ret_data = self.get_response_data(request_handler)
-                except Exception as e:
-                    LOG.error(e)
+            try:
+                ret_data = self.get_response_data(request)
+            except Exception as e:
+                LOG.error(e)
 
             if len(ret_data) > 0:
                 code = 200
             else:
                 code = 404
 
-            response_data = ResponseHandler(self.request.protocol, code, default_headers, ret_data)()
+            response_data = ResponseHandler(request.protocol, code, default_headers, ret_data)()
 
             LOG.info(response_data)
 
@@ -125,13 +123,13 @@ class Handle:
             self.close()
 
     @LRU()
-    def get_response_data(self, request_handler):
+    def get_response_data(self, request):
         ret_data = ''
-        # TODO params를 request로 넣고, request를 파라미터로 보내기 (나중에 post 확장을 위해 , post의 데이터도 request로 넣어서 객체로 관리하자.
-        api_handler, params = request_handler
+        api_handler, params = request.handler
         if api_handler:
             try:
-                ret_data = api_handler()
+                # self.request 를 넣을지 않넣을지 판단하기
+                ret_data = api_handler(request)
 
                 if ret_data is None:
                     raise ServerError
@@ -166,7 +164,7 @@ class Handle:
 
 
 class RequestHandler:
-    __slots__ = ["method", "url", "protocol", "version", "params", "headers", "body"]
+    __slots__ = ["method", "url", "protocol", "version", "params", "headers", "body", "handler", "content_type"]
 
     def __init__(self, request_line, request_headers):
         self.method = request_line['method']
@@ -176,6 +174,8 @@ class RequestHandler:
         self.params = request_line['params']
         self.headers = request_headers
         self.body = None
+        self.handler = None
+        self.content_type = request_line['content_type']
 
     def __repr__(self):
         return "{} {} {} {} {} {}".format(self.__class__, self.method, self.url, self.protocol, self.version, self.params)
@@ -187,7 +187,7 @@ class ResponseHandler:
 
     def __init__(self, protocol, code, headers, body):
         self.code = code
-        self.message = responses[code][0]
+        self.message = responses_code[code][0]
         self.protocol = protocol
         self.headers_buffer = self.set_headers(headers)
         self.body = '' if body is None else body

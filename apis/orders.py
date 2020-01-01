@@ -4,9 +4,9 @@ from http_handler.methods import Methods
 
 class OrdersApi(Methods):
     @staticmethod
-    def do_show():
+    def do_show(req):
         pass
 
     @staticmethod
-    def do_update():
+    def do_update(req):
         pass

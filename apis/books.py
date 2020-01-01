@@ -4,9 +4,9 @@ from http_handler.methods import Methods
 
 class BooksAPI(Methods):
     @staticmethod
-    def do_index():
+    def do_index(req):
         print("do_index")
 
     @staticmethod
-    def do_create():
+    def do_create(req):
         print("do_create")

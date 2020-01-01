@@ -5,8 +5,13 @@ from io import StringIO
 
 from abc import ABCMeta, abstractmethod
 from logger import Logger
+from http_handler import HTTPContentType
 
 LOG = Logger().log
+
+response_content_type = {
+    v.name: v.value for v in HTTPContentType.__members__.values()
+}
 
 __all__ = (
     'ParserHttp'
@@ -60,6 +65,13 @@ class ParserHttp(ParserImp):
         url_params = []
         origin_url = url_split[0]
 
+        req_file_type = origin_url.split("/")[-1]
+        content_type = HTTPContentType['HTML']
+
+        if req_file_type:
+            file_type = req_file_type.split(".")[-1]
+            content_type = HTTPContentType[file_type.upper()]
+
         if len(url_split) > 1:
             url_params = self.parser_url_params(url_split[1:])
 
@@ -67,7 +79,8 @@ class ParserHttp(ParserImp):
                 "url": origin_url,
                 "protocol": protocol,
                 "version": version_number,
-                "params": url_params}
+                "params": url_params,
+                'content_type': content_type}
 
     def parser_url_params(self, params_arr) -> dict:
         """

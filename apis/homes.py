@@ -14,9 +14,9 @@ __all__ = (
 class HomesAPI(Methods):
 
     @staticmethod
-    def do_index():
+    def do_index(req):
         return RenderHandler(HomesAPI.__name__, 'index.html')()
 
     @staticmethod
-    def do_create():
+    def do_create(req):
         print("home do_create")

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# TODO static 구현
+
 # TODO type 지정하기 (from typing import Dict, Tuple, Union, Iterator, Sequence, List)
 # TODO 미들웨어 구현하기
 # TODO cache 구현

@@ -10,6 +10,7 @@ import types
 from logger import Logger
 from utils.klass.singleton import Singleton
 from utils.decorator.memoization import Memoized
+from http_handler.render import StaticFileHandler
 
 LOG = Logger().log
 
@@ -108,3 +109,10 @@ class Router(object, metaclass=Singleton):
                 # pp.pprint(dir(api_import))
             else:  # method
                 pass
+
+
+class StaticHandler:
+    @staticmethod
+    def do_index(req):
+        file_path_list = req.url.replace("/static", "").split("/")
+        return StaticFileHandler("/".join(file_path_list[:-1]).replace("/", "", 1), file_path_list[-1])()
