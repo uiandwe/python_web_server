@@ -35,4 +35,4 @@ def test_router_lookup():
 	assert router.lookup("GET", "/api/orders/") == (OrdersApi.do_show, [])
 	assert router.lookup("POST", "/api/orders/") == (OrdersApi.do_update, [])
 	assert router.lookup("GET", "/api/books/123/") == (BooksAPI.do_index, [types.SimpleNamespace(name='id', type='int', data='123')])
-	assert router.lookup("GET", "/api/books/23/test/") == (None, None, None)
+	assert router.lookup("GET", "/api/books/23/test/") == (None, None)
