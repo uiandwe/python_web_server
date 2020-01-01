@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-class BooksAPI:
+from http_handler.methods import Methods
+
+
+class BooksAPI(Methods):
     @staticmethod
     def do_index():
         print("do_index")

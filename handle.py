@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import selectors
 
-from http import HTTPStatus
+from http_handler import HTTPStatus
 from logger import Logger
 from parser.parser import ParserHttp
 from urls import router
@@ -18,6 +18,8 @@ __all__ = (
     'Handle', 'RequestHandler', 'ResponseHandler'
 )
 
+default_headers = [('Content-Type', 'text/html'), ('Accept-Charset', 'utf-8')]
+
 
 class ServerError(Exception):
     __slots__ = ['msg']
@@ -28,7 +30,7 @@ class ServerError(Exception):
     def __str__(self):
         return self.msg
 
-# TODO headers 선언하기
+# TODO header MIME 선언하기
 # TODO 상황별 http code 로직 추가
 
 
@@ -59,19 +61,14 @@ class Handle:
             self.request = RequestHandler(req_line, request_headers)
             LOG.info(self.request)
 
-        # only HTTP
-        if self.request is None or not self.request.protocol.startswith("HTTP/"):
-            return
-
-        # 1.0 이하는 에러
-        if self.request.version < ('1', '0'):
-            return
-
-        # TODO head 메소드 확장하기
+        # only HTTP or 1.0 이하는 에러
+        if self.request is None or not self.request.protocol.startswith("HTTP/") or \
+                self.request.version < ('1', '0'):
+            res_data = ResponseHandler(self.request.protocol, 400, default_headers, '')()
+            self.send(res_data)
+            self.request = None
 
         # TODO body 확인
-
-        # TODO http 메소드 확장
 
     def _read(self):
         try:
@@ -85,6 +82,13 @@ class Handle:
                 raise RuntimeError("Peer closed.")
 
     def write(self):
+
+        # TODO http 메소드 확장
+        if self.request.method == 'HEAD':
+            pass
+        elif self.request.method == 'OPTIONS':
+            pass
+
         request_handler = None
         if self.request and self.request.method and self.request.url:
             try:
@@ -112,23 +116,16 @@ class Handle:
             else:
                 code = 404
 
-            headers = [('Content-Type', 'text/html'), ('Accept-Charset', 'utf-8')]
-            response_data = ResponseHandler(self.request.protocol, code, headers, ret_data)()
+            response_data = ResponseHandler(self.request.protocol, code, default_headers, ret_data)()
 
             LOG.info(response_data)
 
-            try:
-                self.sock.send(string_to_byte(response_data))
-            except BlockingIOError:
-                pass
-            except Exception as e:
-                LOG.error(e)
+            self.send(response_data)
 
             self.close()
 
     @LRU()
     def get_response_data(self, request_handler):
-        LOG.info("check memo")
         ret_data = ''
         # TODO params를 request로 넣고, request를 파라미터로 보내기 (나중에 post 확장을 위해 , post의 데이터도 request로 넣어서 객체로 관리하자.
         api_handler, params = request_handler
@@ -144,6 +141,14 @@ class Handle:
                 LOG.error(e)
 
         return ret_data
+
+    def send(self, send_data):
+        try:
+            self.sock.send(string_to_byte(send_data))
+        except BlockingIOError:
+            pass
+        except Exception as e:
+            LOG.error(e)
 
     def close(self):
         LOG.info(args_to_str("closing connection to", self.addr))
@@ -207,6 +212,3 @@ class ResponseHandler:
         for keyword, value in headers:
             headers_buffer.append(("%s: %s\r\n" % (keyword, value)))
         return headers_buffer
-
-
-

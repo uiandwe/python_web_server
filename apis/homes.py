@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from http.render import RenderHandler
+
+from http_handler.methods import Methods
+from http_handler.render import RenderHandler
 from logger import Logger
 
 LOG = Logger().log
@@ -9,11 +11,11 @@ __all__ = (
 )
 
 
-class HomesAPI:
+class HomesAPI(Methods):
 
-    @classmethod
-    def do_index(cls):
-        return RenderHandler(cls.__name__, 'index.html')()
+    @staticmethod
+    def do_index():
+        return RenderHandler(HomesAPI.__name__, 'index.html')()
 
     @staticmethod
     def do_create():

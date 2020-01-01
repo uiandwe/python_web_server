@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # https://www.slideshare.net/kwatch/how-to-make-the-fastest-router-in-python
-
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 import re
 import types
@@ -32,6 +34,13 @@ def replace_params_rexp(path):
 
 
 # TODO warrning 처리 하기
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
+
+def load_module_func(module_name):
+    mod = __import__('%s' %(module_name), fromlist=[module_name])
+    return mod
 
 
 class Router(object, metaclass=Singleton):
@@ -42,7 +51,11 @@ class Router(object, metaclass=Singleton):
         self.mapping_dict = {}
         for path, funcs in mapping:
             if '{' not in path:
+
+                self.set_head_method(funcs)
+
                 self.mapping_dict[path] = (funcs, [])
+
                 continue
 
             prefix = prefix_str(path)
@@ -84,3 +97,14 @@ class Router(object, metaclass=Singleton):
                 return func, parms
 
         return None, None
+
+    def set_head_method(self, funcs):
+        if 'GET' in funcs.keys():
+            # TODO head method
+            if isinstance(funcs['GET'], types.FunctionType):  # function
+                # load_module_func('apis.homes.HomesAPI.do_head')
+                api_import = __import__(funcs['GET'].__module__, globals(), locals(), [], 0)
+                class_name = funcs['GET'].__qualname__.replace("." + funcs['GET'].__name__, "")
+                # pp.pprint(dir(api_import))
+            else:  # method
+                pass

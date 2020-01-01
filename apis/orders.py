@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-class OrdersApi:
+from http_handler.methods import Methods
+
+
+class OrdersApi(Methods):
     @staticmethod
     def do_show():
         pass
