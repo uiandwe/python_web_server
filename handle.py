@@ -86,11 +86,9 @@ class Handle:
 
         request_handler = None
         if self.request and self.request.method and self.request.url:
+
             try:
-                if self.request.url.startswith("/static/"):
-                    request_handler = (StaticHandler.do_index, [])
-                else:
-                    request_handler = router.lookup(self.request.method, self.request.url)
+                request_handler = router.lookup(self.request.method, self.request.url)
             except Exception as e:
                 LOG.info(e)
 

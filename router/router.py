@@ -16,7 +16,7 @@ LOG = Logger().log
 
 
 __all__ = (
-    'Router'
+    'Router', 'StaticHandler'
 )
 
 
@@ -67,6 +67,10 @@ class Router(object, metaclass=Singleton):
 
     @Memoized
     def lookup(self, req_method, req_path):
+
+        if req_path.startswith("/static/") and req_method == 'GET':
+            return StaticHandler.do_index, []
+
         path_dict = self.mapping_dict.get(req_path)
         if path_dict:
             funcs, parms = path_dict
