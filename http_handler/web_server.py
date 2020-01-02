@@ -4,7 +4,7 @@ import socket
 from _thread import start_new_thread
 
 from logger import Logger
-from handle import Handle
+from http_handler.handle import Handle
 from utils import args_to_str
 
 LOG = Logger().log

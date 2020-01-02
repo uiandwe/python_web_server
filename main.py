@@ -15,7 +15,7 @@
 # TODO CORS 구현
 # TODO http2 적용
 
-from web_server import WebServer
+from http_handler.web_server import WebServer
 from logger import Logger
 
 LOG = Logger().log
