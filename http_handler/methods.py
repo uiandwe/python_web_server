@@ -7,6 +7,6 @@ class Methods:
     def do_options(cls, req):
         return inspect.getmembers(cls, predicate=inspect.ismethod)
 
-    @classmethod
-    def do_head(cls, req):
+    @staticmethod
+    def do_head(req):
         return ''

@@ -35,15 +35,6 @@ def replace_params_rexp(path):
 
 
 # TODO warrning 처리 하기
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
-
-
-def load_module_func(module_name):
-    mod = __import__('%s' %(module_name), fromlist=[module_name])
-    return mod
-
-
 class Router(object, metaclass=Singleton):
     __slots__ = ["mapping_list", "mapping_dict"]
 
@@ -105,12 +96,20 @@ class Router(object, metaclass=Singleton):
 
     def set_head_method(self, funcs):
         if 'GET' in funcs.keys():
-            # TODO head method
+
             if isinstance(funcs['GET'], types.FunctionType):  # function
-                # load_module_func('apis.homes.HomesAPI.do_head')
+
                 api_import = __import__(funcs['GET'].__module__, globals(), locals(), [], 0)
+                file_name = funcs['GET'].__module__.split(".")[-1]
                 class_name = funcs['GET'].__qualname__.replace("." + funcs['GET'].__name__, "")
-                # pp.pprint(dir(api_import))
+
+                method_to_call = getattr(api_import, file_name)
+                class_call = getattr(method_to_call, class_name)
+
+                funcs['HEAD'] = class_call.do_head
+
+                return funcs
+
             else:  # method
                 pass
 

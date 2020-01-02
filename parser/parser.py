@@ -68,7 +68,7 @@ class ParserHttp(ParserImp):
         req_file_type = origin_url.split("/")[-1]
         content_type = HTTPContentType['HTML']
 
-        if req_file_type:
+        if req_file_type and req_file_type.find(".") > 0:
             file_type = req_file_type.split(".")[-1]
             content_type = HTTPContentType[file_type.upper()]
 
