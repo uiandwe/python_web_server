@@ -8,6 +8,7 @@ from router.router import StaticHandler
 from urls import router
 from utils import args_to_str, string_to_byte
 from utils.decorator.memoization import LRU
+from operator import eq
 
 LOG = Logger().log
 
@@ -65,9 +66,7 @@ class Handle:
         # only HTTP or 1.0 이하는 에러
         if self.request is None or not self.request.protocol.startswith("HTTP/") or \
                 self.request.version < ('1', '0'):
-            res_data = ResponseHandler(self.request.protocol, 400, default_headers, '')()
-            self.send(res_data)
-            self.request = None
+            self.send_error(self.request.protocol, 400, default_headers)
 
         # TODO body 확인
 
@@ -100,30 +99,29 @@ class Handle:
 
     def _write(self, request):
 
-        if self._recv_buffer and request.handler is not (None, None):
+        if self._recv_buffer and eq(request.handler, (None, None)) is False:
             ret_data = ''
             try:
                 ret_data = self.get_response_data(request)
             except Exception as e:
                 LOG.error(e)
+                self.send_error(self.request.protocol, 400, default_headers)
 
-            if len(ret_data) > 0:
-                code = 200
-            else:
-                code = 404
-
-            response_data = ResponseHandler(request.protocol, code, default_headers, ret_data)()
+            response_data = ResponseHandler(request.protocol, 200, default_headers, ret_data)()
 
             LOG.info(response_data)
 
             self.send(response_data)
 
             self.close()
+        else:
+            self.send_error(self.request.protocol, 400, default_headers)
 
     @LRU()
     def get_response_data(self, request):
         ret_data = ''
         api_handler, params = request.handler
+
         if api_handler:
             try:
                 # self.request 를 넣을지 않넣을지 판단하기
@@ -145,6 +143,11 @@ class Handle:
             pass
         except Exception as e:
             LOG.error(e)
+
+    def send_error(self, protocol, code, headers):
+        res_data = ResponseHandler(protocol, code, headers, '')()
+        self.send(res_data)
+        self.request = None
 
     def close(self):
         LOG.info(args_to_str("closing connection to", self.addr))
