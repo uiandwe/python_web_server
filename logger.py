@@ -6,10 +6,11 @@ https://docs.python.org/ko/3/library/logging.handlers.html
 
 # TODO logging.ini 파일로 설정 대체
 
-import os
 import logging
-from utils.klass.singleton import Singleton
 from logging.handlers import TimedRotatingFileHandler
+
+from utils import create_folder
+from utils.klass.singleton import Singleton
 
 __all__ = (
     'Logger'
@@ -17,12 +18,12 @@ __all__ = (
 
 
 class Logger(metaclass=Singleton):
+
     __slots__ = ["_log"]
-    __instance = None
 
     def __init__(self):
 
-        self.create_log_folder("logs")
+        create_folder("logs")
 
         self._log = logging.getLogger("my")
         self._log.setLevel(logging.DEBUG)
@@ -43,8 +44,3 @@ class Logger(metaclass=Singleton):
     @property
     def log(self):
         return self._log
-
-    @staticmethod
-    def create_log_folder(dir_name):
-        if not os.path.exists(dir_name):
-            os.mkdir(dir_name)

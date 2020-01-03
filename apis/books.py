@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from http_handler.methods import Methods
 
+__all__ = (
+    'BooksAPI'
+)
+
 
 class BooksAPI(Methods):
     @staticmethod

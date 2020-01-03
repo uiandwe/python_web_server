@@ -2,7 +2,8 @@
 from enum import IntEnum, Enum
 
 __all__ = (
-    'HTTPStatus', 'HTTPContentType'
+    'HTTPStatus',
+    'HTTPContentType'
 )
 
 

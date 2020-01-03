@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 
+TEMPLATE_FOLDER = "template"
+STATIC_FOLDER = "static"
+
 
 class FolderError(Exception):
     __slots__ = ['msg']
@@ -22,15 +25,13 @@ class FileError(Exception):
         return self.msg
 
 
-TEMPLATE_FOLDER = "template"
-STATIC_FOLDER = "static"
-
-
 # TODO 템플릿 언어 적용
 class FileImp:
     __slots__ = ["folder_path", "file_name", "default_path"]
 
-    def __init__(self, default_path, folder_path, file_name):
+    def __init__(self, default_path,
+                 folder_path,
+                 file_name):
         self.folder_path = folder_path
         self.file_name = file_name
         self.default_path = default_path
@@ -48,13 +49,14 @@ class FileImp:
 
         return self.file_read()
 
-    def exist_folder(self):
+    def exist_folder(self) -> bool:
         return os.path.isdir(os.path.join(self.default_path, self.folder_path))
 
-    def exist_file(self):
+    def exist_file(self) -> bool:
         return os.path.exists(os.path.join(self.default_path, self.folder_path, self.file_name))
 
-    def file_read(self):
+    # TODO 이미지 로드 추가
+    def file_read(self) -> str:
         file_path = os.path.join(self.default_path, self.folder_path, self.file_name)
         with open(file_path, encoding='utf8') as f:
             contents = f.read()

@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import selectors
+from operator import eq
 
 from http_handler import HTTPStatus
+from http_handler.urls import router
 from logger import Logger
 from parser.parser import ParserHttp
-from router.router import StaticHandler
-from urls import router
 from utils import args_to_str, string_to_byte
 from utils.decorator.memoization import LRU
-from operator import eq
 
 LOG = Logger().log
 
@@ -17,7 +16,9 @@ responses_code = {
 }
 
 __all__ = (
-    'Handle', 'RequestHandler', 'ResponseHandler'
+    'Handle',
+    'RequestHandler',
+    'ResponseHandler'
 )
 
 default_headers = [('Accept-Charset', 'utf-8')]
@@ -99,40 +100,40 @@ class Handle:
 
     def _write(self, request):
 
-        if self._recv_buffer and eq(request.handler, (None, None)) is False:
-            ret_data = ''
+        if not self._recv_buffer:
+            self.send_error(self.request.protocol, 400, default_headers)
+
+        elif eq(request.handler, (None, None)):
+            self.send_error(self.request.protocol, 404, default_headers)
+
+        else:
             try:
                 ret_data = self.get_response_data(request)
+
+                response_data = ResponseHandler(request.protocol, 200, default_headers, ret_data)()
+
+                LOG.info(response_data)
+
+                self.send(response_data)
+
             except Exception as e:
                 LOG.error(e)
                 self.send_error(self.request.protocol, 400, default_headers)
 
-            response_data = ResponseHandler(request.protocol, 200, default_headers, ret_data)()
-
-            LOG.info(response_data)
-
-            self.send(response_data)
-
-            self.close()
-        else:
-            self.send_error(self.request.protocol, 400, default_headers)
+        self.close()
 
     @LRU()
     def get_response_data(self, request):
         ret_data = ''
         api_handler, params = request.handler
 
-        if api_handler:
-            try:
-                # self.request 를 넣을지 않넣을지 판단하기
-                ret_data = api_handler(request)
+        if api_handler is None:
+            return ret_data
 
-                if ret_data is None:
-                    raise ServerError
+        ret_data = api_handler(request)
 
-            # TODO 500 error 추가
-            except Exception as e:
-                LOG.error(e)
+        if ret_data is None:
+            raise ServerError
 
         return ret_data
 
