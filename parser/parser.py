@@ -49,35 +49,40 @@ class ParserHttp(ParserImp):
         return req_line, request_headers
 
     def parser_request(self,
-                       req_line: bytes) -> dict:
+                       req_data: bytes) -> dict:
         """
         method, url, http protocol, http version, url params,  파서
         ex data) 'GET /static/css/main.css?file_version=1 HTTP/1.1'
         """
 
-        req_line_arr = req_line.decode('utf-8').split(' ')
+        req_infos = req_data.decode('utf-8').split(' ')
 
-        method = req_line_arr[0]
-        url_split = req_line_arr[1].split('?')
-        protocol = req_line_arr[2]
-        base_version_number = protocol.split('/', 1)[1]
-        version_number = tuple(base_version_number.split("."))
+        method, urls, protocol, base_version_num, version_num = self.get_req_infos(req_infos)
 
         url_params = []
-        origin_url = url_split[0]
+        origin_url = urls[0]
 
         file_type = origin_url.split("/")[-1]
         content_type = self.find_file_type(file_type)
 
-        if len(url_split) > 1:
-            url_params = self.parser_url_params(url_split[1:])
+        if len(urls) > 1:
+            url_params = self.parser_url_params(urls[1:])
 
         return {"method": method,
                 "url": origin_url,
                 "protocol": protocol,
-                "version": version_number,
+                "version": version_num,
                 "params": url_params,
                 'content_type': content_type}
+
+    def get_req_infos(self, req_infos: list) -> tuple:
+        method = req_infos[0]
+        urls = req_infos[1].split('?')
+        protocol = req_infos[2]
+        base_version_num = protocol.split('/', 1)[1]
+        version_num = tuple(base_version_num.split("."))
+
+        return method, urls, protocol, base_version_num, version_num
 
     def find_file_type(self, file_type: str) -> str:
         if file_type and file_type.find(".") > 0:
