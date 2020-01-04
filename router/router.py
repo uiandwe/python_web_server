@@ -81,7 +81,7 @@ class Router(object, metaclass=Singleton):
             if not path_match:
                 continue
 
-            parms = []
+            req_params = []
             path_split = path.split("/")
             req_path_split = req_path.split("/")
 
@@ -92,12 +92,12 @@ class Router(object, metaclass=Singleton):
                 if origin_data == req_data:
                     continue
 
-                parse_path_parmas = re.search("\{(\w*):(\w*)\}", origin_data).groups()
-                data = types.SimpleNamespace(name=parse_path_parmas[0], type=parse_path_parmas[1], data=req_data)
-                parms.append(data)
+                parameter_name, parameter_type = re.search("\{(\w*):(\w*)\}", origin_data).groups()
+                data = types.SimpleNamespace(name=parameter_name, type=parameter_type, data=req_data)
+                req_params.append(data)
 
             func = funcs.get(req_method)
-            return func, parms
+            return func, req_params
 
         return None, None
 

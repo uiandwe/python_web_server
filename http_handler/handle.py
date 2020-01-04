@@ -105,13 +105,11 @@ class Handle:
         else:
             try:
                 ret_data = self.get_response_data(request)
-
                 response_data = ResponseHandler(request.protocol, 200, default_headers, ret_data)()
 
                 LOG.info(response_data)
 
                 self.send(response_data)
-
             except Exception as e:
                 LOG.error(repr(e))
                 self.send_error(self.request.protocol, 400, default_headers)

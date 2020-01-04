@@ -9,8 +9,8 @@ __all__ = (
 class OrdersApi(Methods):
     @staticmethod
     def do_show(req):
-        pass
+        return ''
 
     @staticmethod
     def do_update(req):
-        pass
+        return ''

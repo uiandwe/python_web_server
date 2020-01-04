@@ -20,3 +20,4 @@ class HomesAPI(Methods):
     @staticmethod
     def do_create(req):
         print("home do_create")
+        return ''
