@@ -28,7 +28,7 @@ class WebServer:
         self.lsock.bind((self.host, self.port))
         self.lsock.listen()
 
-        LOG.info(args_to_str("listion on ", (self.host, self.port)))
+        LOG.info(args_to_str("listen on ", (self.host, self.port)))
 
         self.lsock.setblocking(False)
         self.sel.register(self.lsock, selectors.EVENT_READ, data=None)

@@ -57,7 +57,10 @@ class Router(object, metaclass=Singleton):
             self.mapping_list.append((prefix, regx_path, path, funcs))
 
     @Memoized
-    def lookup(self, req_method, req_path):
+    def lookup(self, req_method: str, req_path: str) -> tuple:
+        """
+        요청된 method / path 에 맞는 api 객체 반환
+        """
 
         if req_path.startswith(STATIC_FOLDER) and req_method == 'GET':
             return StaticHandler.do_index, []
@@ -98,7 +101,10 @@ class Router(object, metaclass=Singleton):
 
         return None, None
 
-    def set_head_method(self, funcs):
+    def set_head_method(self, funcs: dict):
+        """
+        get 메소드가 있을 경우, head 메소드 추가
+        """
 
         if 'GET' not in funcs.keys():
             return
@@ -124,6 +130,9 @@ class Router(object, metaclass=Singleton):
 
 
 class StaticHandler:
+    """
+    static 파일 요청 핸들러
+    """
     @staticmethod
     def do_index(req):
         static_file_path = req.url.replace(STATIC_FOLDER, "").split("/")

@@ -84,19 +84,15 @@ class Handle:
 
     def write(self):
 
-        request_handler = None
-        if self.request and self.request.method and self.request.url:
+        if not self.request or not self.request.method or not self.request.url:
+            return
 
-            try:
-                request_handler = router.lookup(self.request.method, self.request.url)
-            except Exception as e:
-                LOG.info(e)
-
-        if request_handler:
-            self.request.handler = request_handler
+        try:
+            self.request.handler = router.lookup(self.request.method, self.request.url)
             self._write(self.request)
-        else:
-            self.close()
+        except Exception as e:
+            LOG.error(repr(e))
+            raise ServerError
 
     def _write(self, request):
 
@@ -117,7 +113,7 @@ class Handle:
                 self.send(response_data)
 
             except Exception as e:
-                LOG.error(e)
+                LOG.error(repr(e))
                 self.send_error(self.request.protocol, 400, default_headers)
 
         self.close()
@@ -143,7 +139,7 @@ class Handle:
         except BlockingIOError:
             pass
         except Exception as e:
-            LOG.error(e)
+            LOG.error(repr(e))
 
     def send_error(self, protocol, code, headers):
         res_data = ResponseHandler(protocol, code, headers, '')()
@@ -180,7 +176,7 @@ class RequestHandler:
         self.content_type = request_line['content_type']
 
     def __repr__(self):
-        return "{} {} {} {} {} {}".format(self.__class__, self.method, self.url, self.protocol, self.version, self.params)
+        return "{} {} {} {}".format(self.__class__, self.method, self.url, self.params)
 
 
 class ResponseHandler:
@@ -194,8 +190,9 @@ class ResponseHandler:
         self.headers_buffer = self.set_headers(headers)
         self.body = '' if body is None else body
 
-    def __call__(self, *args, **kwargs):
-        self.end_headers()
+        self.headers_buffer.append("\r\n")
+
+    def __call__(self, *args, **kwargs) -> str:
 
         _wfile = "{} {} {}".format(self.protocol, self.code, self.message)
         _wfile += "\r\n"
@@ -205,10 +202,7 @@ class ResponseHandler:
             _wfile += "{}\r\n".format(self.body)
         return _wfile
 
-    def end_headers(self):
-        self.headers_buffer.append("\r\n")
-
-    def set_headers(self, headers):
+    def set_headers(self, headers: tuple) -> list:
         headers_buffer = []
 
         for keyword, value in headers:

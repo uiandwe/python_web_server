@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# TODO type 지정하기 (from typing import Dict, Tuple, Union, Iterator, Sequence, List)
-# TODO parser, hadnle, router 함수로 쪼개기
+# TODO test 로직 추가 하기
+# TODO .env 상수 적용하기
 # TODO 미들웨어 구현하기
 # TODO cache 구현
-# TODO .env 상수 적용하기
-# -----------------------------------------------------
-# TODO 폴더와 파일 레벨 맞추기
-# TODO 클래스 이름 바꾸기
-# TODO test 로직 추가 하기
-# -----------------------------------------------------
+# -------------------- WAS ------------------------
 # TODO http method 구현하기
 # TODO wsgi 호환
 # TODO weakref 객체 확인하기

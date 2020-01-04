@@ -25,7 +25,6 @@ class FileError(Exception):
         return self.msg
 
 
-# TODO 템플릿 언어 적용
 class FileImp:
     __slots__ = ["folder_path", "file_name", "default_path"]
 
@@ -55,7 +54,7 @@ class FileImp:
     def exist_file(self) -> bool:
         return os.path.exists(os.path.join(self.default_path, self.folder_path, self.file_name))
 
-    # TODO 이미지 로드 추가
+    # TODO 이미지 로드 로직 추가
     def file_read(self) -> str:
         file_path = os.path.join(self.default_path, self.folder_path, self.file_name)
         with open(file_path, encoding='utf8') as f:
@@ -63,11 +62,12 @@ class FileImp:
             return contents
 
 
+# TODO 템플릿 언어 적용
 class RenderHandler(FileImp):
-    def __init__(self, folder_path, file_name):
+    def __init__(self, folder_path: str, file_name: str):
         super().__init__(TEMPLATE_FOLDER, folder_path, file_name)
 
 
 class StaticFileHandler(FileImp):
-    def __init__(self, folder_path, file_name):
+    def __init__(self, folder_path: str, file_name: str):
         super().__init__(STATIC_FOLDER, folder_path, file_name)
