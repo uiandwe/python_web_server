@@ -135,7 +135,8 @@ class HTTPContentType(Enum):
     content type list
     """
     GIF = 'image/gif'
-    JPG = 'image/jpeg'
+    JPG = 'image/jpg'
+    JPEG = 'image/jpeg'
     SVG = 'image/svg+xml'
     PNG = 'image/png'
     ICO = 'image/x-icon'

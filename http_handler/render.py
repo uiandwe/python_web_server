@@ -38,24 +38,13 @@ class FileImp:
     def __repr__(self):
         return "{} {} {}".format(self.default_path, self.folder_path, self.file_name)
 
-    def __call__(self, *args, **kwargs):
-
-        if self.exist_folder() is False:
-            raise FolderError
-
-        if self.exist_file() is False:
-            raise FileError
-
-        return self.file_read()
-
     def exist_folder(self) -> bool:
         return os.path.isdir(os.path.join(self.default_path, self.folder_path))
 
     def exist_file(self) -> bool:
         return os.path.exists(os.path.join(self.default_path, self.folder_path, self.file_name))
 
-    # TODO 이미지 로드 로직 추가
-    def file_read(self) -> str:
+    def read_file(self) -> str:
         file_path = os.path.join(self.default_path, self.folder_path, self.file_name)
         with open(file_path, encoding='utf8') as f:
             contents = f.read()
@@ -67,7 +56,35 @@ class RenderHandler(FileImp):
     def __init__(self, folder_path: str, file_name: str):
         super().__init__(TEMPLATE_FOLDER, folder_path, file_name)
 
+    def __call__(self, *args, **kwargs):
+
+        if self.exist_folder() is False:
+            raise FolderError
+
+        if self.exist_file() is False:
+            raise FileError
+
+        return self.read_file()
+
 
 class StaticFileHandler(FileImp):
     def __init__(self, folder_path: str, file_name: str):
         super().__init__(STATIC_FOLDER, folder_path, file_name)
+
+    def __call__(self, *args, **kwargs):
+
+        if self.exist_folder() is False:
+            raise FolderError
+
+        if self.exist_file() is False:
+            raise FileError
+
+        if self.file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
+            return self.read_image_file()
+        else:
+            return self.read_file()
+
+    def read_image_file(self) -> str:
+        file_path = os.path.join(self.default_path, self.folder_path, self.file_name)
+        stream = open(file_path, "rb")
+        return stream.read()

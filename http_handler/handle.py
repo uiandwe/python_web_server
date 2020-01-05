@@ -95,24 +95,24 @@ class Handle:
             raise ServerError
 
     def _write(self, request):
-
         if not self._recv_buffer:
-            self.send_error(self.request.protocol, 400, default_headers)
+            self.send_error(self.request, 400)
 
         elif eq(request.handler, (None, None)):
-            self.send_error(self.request.protocol, 404, default_headers)
+            self.send_error(self.request, 404)
 
         else:
             try:
                 ret_data = self.get_response_data(request)
-                response_data = ResponseHandler(request.protocol, 200, default_headers, ret_data)()
+
+                response_data = ResponseHandler(request, 200, ret_data)()
 
                 LOG.info(response_data)
 
                 self.send(response_data)
             except Exception as e:
                 LOG.error(repr(e))
-                self.send_error(self.request.protocol, 400, default_headers)
+                self.send_error(self.request, 400)
 
         self.close()
 
@@ -139,8 +139,8 @@ class Handle:
         except Exception as e:
             LOG.error(repr(e))
 
-    def send_error(self, protocol, code, headers):
-        res_data = ResponseHandler(protocol, code, headers, '')()
+    def send_error(self, request, code):
+        res_data = ResponseHandler(request, code, '')()
         self.send(res_data)
         self.request = None
 
@@ -181,12 +181,12 @@ class ResponseHandler:
 
     __slots__ = ["code", "message", "protocol", "headers_buffer", "body"]
 
-    def __init__(self, protocol, code, headers, body):
+    def __init__(self, request, code, body):
         self.code = code
         self.message = responses_code[code][0]
-        self.protocol = protocol
-        self.headers_buffer = self.set_headers(headers)
+        self.protocol = request.protocol
         self.body = '' if body is None else body
+        self.headers_buffer = self.set_headers(("content-type", request.content_type))
 
         self.headers_buffer.append("\r\n")
 
@@ -200,9 +200,18 @@ class ResponseHandler:
             _wfile += "{}\r\n".format(self.body)
         return _wfile
 
-    def set_headers(self, headers: tuple) -> list:
+    def set_headers(self, content_type) -> list:
+
         headers_buffer = []
 
-        for keyword, value in headers:
-            headers_buffer.append(("%s: %s\r\n" % (keyword, value)))
+        for keyword, value in default_headers:
+            headers_buffer.append(("{}: {}\r\n".format(keyword, value)))
+
+        key, val = content_type
+        headers_buffer.append("{}: {}\r\n".format(key, val))
+        headers_buffer.append("{}: {}\r\n".format('Accept-Ranges', 'bytes'))
+
+        content_len = len(self.body)
+        headers_buffer.append("{}: {}\r\n".format('Content-Length', content_len))
+
         return headers_buffer

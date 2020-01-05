@@ -87,8 +87,8 @@ class ParserHttp(ParserImp):
     def find_file_type(self, file_type: str) -> str:
         if file_type and file_type.find(".") > 0:
             file_type = file_type.split(".")[-1]
-            return HTTPContentType[file_type.upper()]
-        return HTTPContentType['HTML']
+            return response_content_type[file_type.upper()]
+        return response_content_type['HTML']
 
     def parser_url_params(self,
                           params_arr: list) -> dict:
